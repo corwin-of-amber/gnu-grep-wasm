@@ -1,0 +1,65 @@
+CC = /opt/wasi-sdk/bin/clang
+INC = -I. -Ilib  -Isrc -Iwasi -include wasi/etc.h
+CFLAGS = $(INC) -O3 -Wno-tautological-constant-out-of-range-compare
+# -fblocks 
+LDFLAGS = -Wl,-allow-undefined
+
+AR = /opt/wasi-sdk/bin/llvm-ar
+
+PROGS = grep
+
+libgreputils.a_OBJ = ${addprefix lib/, ${filter %.o, ${shell ar t lib/libgreputils.a}}}
+libgreputils.wa_OBJ = $(libgreputils.wa_SRC:.c=.wo)
+
+all: ${foreach p, $(PROGS), bin/$(p).wasm}
+
+reconfigure:
+	cp wasi-preconf/config.h .
+	cp wasi-preconf/opendirat.h lib/
+
+%.wo: %.c
+	$(CC) $(CFLAGS) -c $^ -o $@
+
+
+gnulib_SRC = \
+argmatch.c         fnmatch.c          mbsrtowcs.c        stat.c              \
+basename-lgpl.c    fstatat.c          mbsstr.c           stripslash.c        \
+c-stack.c          fts.c              mbtowc.c           strnlen.c           \
+c-strcasecmp.c     getopt.c           mbuiter.c          strnlen1.c          \
+c-strncasecmp.c    getopt1.c          memchr2.c          strstr.c            \
+chdir-long.c       getprogname.c      memrchr.c          strtoll.c           \
+cloexec.c          hard-locale.c      nl_langinfo.c      strtoul.c           \
+close-stream.c     hash.c             obstack.c          strtoull.c          \
+closeout.c         i-ring.c           open-safer.c       uniwidth/width.c    \
+colorize-posix.c   localcharset.c     open.c             version-etc-fsf.c   \
+cycle-check.c      localeinfo.c       openat-die.c       version-etc.c       \
+dfa.c              lstat.c            openat-proc.c      wcwidth.c           \
+dirname-lgpl.c     mbchar.c           openat-safer.c     xalloc-die.c        \
+dup-safer.c        mbiter.c           openat.c           xmalloc.c           \
+error.c            mbrlen.c           opendirat.c        xstriconv.c         \
+exclude.c          mbrtowc.c          quotearg.c         xstrtoimax.c        \
+exitfail.c         mbscasecmp.c       regex.c            xstrtol.c           \
+fchdir.c           mbsinit.c          safe-read.c        xstrtoul.c          \
+fd-safer.c         mbslen.c           save-cwd.c                             \
+filenamecat-lgpl.c mbsrtowcs-state.c  setlocale_null.c
+
+
+libgreputils.wa_SRC = ${addprefix lib/, $(gnulib_SRC)}
+
+lib/libgreputils.wa: $(libgreputils.wa_OBJ)
+	$(AR) cr $@ $^
+
+
+grep_SRC = ${addprefix src/, dfasearch.c   kwsearch.c    pcresearch_stub.c  \
+                             grep.c        kwset.c       searchutils.c}
+
+force:
+
+bin/%.wasm: $($*_SRC) lib/libgreputils.wa force
+	@mkdir -p bin
+	$(CC) $(CFLAGS) -o $@ $($*_SRC) lib/libgreputils.wa $(LDFLAGS)
+
+.PHONY: clean
+
+clean:
+	rm -f src/*.wo lib/*.wo lib/*.wa
