@@ -1,0 +1,12 @@
+{
+    "fpending.wo": "skip",
+    "fts.o": {
+        "output": "fts.wo",
+        "args": ["-include", "../wasi-preconf/opendirat.h"]
+    },
+    "grep": {
+        "output": "../bin/grep.wasm",
+        "args": ["../../../pcre/pcre-8.43/.libs/libpcre.wa", "-Wl,-allow-undefined"],
+        "noargs": ["re:^-[lL]"]
+    }
+}

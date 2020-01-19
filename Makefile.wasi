@@ -1,7 +1,8 @@
 CC = /opt/wasi-sdk/bin/clang
-INC = -I. -Ilib  -Isrc -Iwasi -include wasi/etc.h
+INC = -I. -Ilib  -Isrc -Iwasi -I../../pcre/pcre-8.43 -include wasi/etc.h
 CFLAGS = $(INC) -O3 -Wno-tautological-constant-out-of-range-compare
 # -fblocks 
+LIBS = ../../pcre/pcre-8.43/.libs/libpcre.wa
 LDFLAGS = -Wl,-allow-undefined
 
 AR = /opt/wasi-sdk/bin/llvm-ar
@@ -50,14 +51,14 @@ lib/libgreputils.wa: $(libgreputils.wa_OBJ)
 	$(AR) cr $@ $^
 
 
-grep_SRC = ${addprefix src/, dfasearch.c   kwsearch.c    pcresearch_stub.c  \
+grep_SRC = ${addprefix src/, dfasearch.c   kwsearch.c    pcresearch.c  \
                              grep.c        kwset.c       searchutils.c}
 
 force:
 
 bin/%.wasm: $($*_SRC) lib/libgreputils.wa force
 	@mkdir -p bin
-	$(CC) $(CFLAGS) -o $@ $($*_SRC) lib/libgreputils.wa $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $($*_SRC) lib/libgreputils.wa $(LIBS) $(LDFLAGS)
 
 .PHONY: clean
 

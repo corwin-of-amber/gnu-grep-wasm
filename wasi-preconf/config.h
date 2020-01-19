@@ -1477,7 +1477,7 @@
 /* #undef USE_ISOC_THREADS */
 
 /* Define if the POSIX multithreading library can be used. */
-#define USE_POSIX_THREADS 1
+//#define USE_POSIX_THREADS 1
 
 /* Define if references to the POSIX multithreading library should be made
    weak. */
@@ -1624,14 +1624,11 @@
        AIX system header files and several gnulib header files use precisely
        this syntax with 'extern'.  */
 #  define _Noreturn [[noreturn]]
-# elif ((!defined __cplusplus || defined __clang__) \
+# elif (!(defined __cplusplus || defined __clang__) \
         && (201112 <= (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0)  \
             || 4 < __GNUC__ + (7 <= __GNUC_MINOR__)))
-#  if defined __wasi__
-#   define _Noreturn __attribute__ ((__noreturn__))
-#  endif
    /* _Noreturn works as-is.  */
-# elif 2 < __GNUC__ + (8 <= __GNUC_MINOR__) || 0x5110 <= __SUNPRO_C
+# elif 2 < __GNUC__ + (8 <= __GNUC_MINOR__) || 0x5110 <= __SUNPRO_C || defined __clang__
 #  define _Noreturn __attribute__ ((__noreturn__))
 # elif 1200 <= (defined _MSC_VER ? _MSC_VER : 0)
 #  define _Noreturn __declspec (noreturn)
